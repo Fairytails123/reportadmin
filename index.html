@@ -3,46 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dog Report V7 - Marker Configuration</title>
+  <title>Dog Report V7 - Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
     .sidebar { width: 250px; min-height: 100vh; }
     .main-content { margin-left: 250px; min-height: 100vh; }
-    .toast-enter { animation: slideIn 0.3s ease-out; }
-    .toast-exit { animation: slideOut 0.3s ease-in forwards; }
+    .toast { animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); }
-    .field-row { animation: fadeIn 0.2s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-    th.sortable { cursor: pointer; user-select: none; }
-    th.sortable:hover { background-color: rgba(59,130,246,0.08); }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .spinner { border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-100 text-gray-800">
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar fixed top-0 left-0 bg-slate-800 text-white flex flex-col z-30">
-    <div class="px-5 py-6 border-b border-slate-700">
+  <aside class="sidebar fixed top-0 left-0 bg-slate-800 text-white flex flex-col z-30">
+    <div class="p-5 border-b border-slate-700">
       <h1 class="text-lg font-bold tracking-tight">Dog Report V7</h1>
-      <p class="text-xs text-slate-400 mt-1">Marker Configuration</p>
+      <p class="text-xs text-slate-400 mt-1">Marker Admin Panel</p>
     </div>
-    <nav id="sidebar-nav" class="flex-1 py-4"></nav>
-    <div class="px-5 py-4 border-t border-slate-700 text-xs text-slate-500">
-      Admin Panel v1.0
-    </div>
+    <nav class="flex-1 py-3" id="sidebar-nav">
+      <button onclick="showView('dashboard')" data-nav="dashboard"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span>&#9632;</span> Dashboard
+      </button>
+      <div class="px-5 pt-4 pb-1 text-xs text-slate-500 uppercase tracking-wider">Markers</div>
+      <button onclick="showView('marker',1)" data-nav="marker-1"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> Marker 1
+      </button>
+      <button onclick="showView('marker',2)" data-nav="marker-2"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span> Marker 2
+      </button>
+      <button onclick="showView('marker',3)" data-nav="marker-3"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Marker 3
+      </button>
+      <button onclick="showView('marker',4)" data-nav="marker-4"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span> Marker 4
+      </button>
+      <button onclick="showView('marker',5)" data-nav="marker-5"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> Marker 5
+      </button>
+      <div class="px-5 pt-4 pb-1 text-xs text-slate-500 uppercase tracking-wider">Reference</div>
+      <button onclick="showView('fields')" data-nav="fields"
+        class="nav-btn w-full text-left px-5 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-2">
+        <span>&#9776;</span> Field Reference
+      </button>
+    </nav>
   </aside>
 
-  <!-- Main -->
-  <main id="app" class="main-content p-8"></main>
+  <!-- Main Content -->
+  <main class="main-content p-8">
+    <!-- Loading Spinner -->
+    <div id="loading" class="flex items-center justify-center h-64">
+      <div class="spinner"></div>
+    </div>
 
-  <!-- Toast container -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+    <!-- Dashboard View -->
+    <div id="view-dashboard" class="hidden">
+      <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+      <div id="dashboard-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+
+    <!-- Marker Editor View -->
+    <div id="view-marker" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold" id="editor-title">Marker Editor</h2>
+        <button onclick="saveMarker()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition">
+          Save Changes
+        </button>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Marker Name</label>
+            <input id="editor-name" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Marker Number</label>
+            <input id="editor-number" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50" readonly />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Description</label>
+          <textarea id="editor-description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">Field Mappings</h3>
+        <button onclick="addMappingRow()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition">
+          + Add Mapping
+        </button>
+      </div>
+      <div id="mappings-container" class="space-y-3"></div>
+    </div>
+
+    <!-- Field Reference View -->
+    <div id="view-fields" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">JotForm Field Reference</h2>
+      <div class="mb-4">
+        <input id="field-search" type="text" placeholder="Search fields..." oninput="renderFieldTable()"
+          class="w-full md:w-80 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+      </div>
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-left">
+            <tr>
+              <th class="px-4 py-3 font-medium cursor-pointer hover:bg-gray-100" onclick="sortFields('field_id')">ID</th>
+              <th class="px-4 py-3 font-medium cursor-pointer hover:bg-gray-100" onclick="sortFields('field_name')">Name</th>
+              <th class="px-4 py-3 font-medium cursor-pointer hover:bg-gray-100" onclick="sortFields('label')">Label</th>
+              <th class="px-4 py-3 font-medium cursor-pointer hover:bg-gray-100" onclick="sortFields('type')">Type</th>
+              <th class="px-4 py-3 font-medium">Options</th>
+            </tr>
+          </thead>
+          <tbody id="field-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
 <script>
-// ─── Config ────────────────────────────────────────────────────────────────
+// =============================================================================
+// CONFIG
+// =============================================================================
 const API_BASE = 'https://ftmanager.app.n8n.cloud/webhook';
 const ENDPOINTS = {
   getMarkers: API_BASE + '/v7-markers',
@@ -51,700 +143,489 @@ const ENDPOINTS = {
 };
 
 const MARKER_COLORS = {
-  1: { bg: 'bg-emerald-500', text: 'text-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200' },
-  2: { bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50', border: 'border-blue-200' },
-  3: { bg: 'bg-yellow-500', text: 'text-yellow-600', light: 'bg-yellow-50', border: 'border-yellow-200' },
-  4: { bg: 'bg-orange-500', text: 'text-orange-600', light: 'bg-orange-50', border: 'border-orange-200' },
-  5: { bg: 'bg-red-500', text: 'text-red-600', light: 'bg-red-50', border: 'border-red-200' },
+  1: { bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-700', dot: 'bg-green-400' },
+  2: { bg: 'bg-blue-50', border: 'border-blue-400', text: 'text-blue-700', dot: 'bg-blue-400' },
+  3: { bg: 'bg-yellow-50', border: 'border-yellow-400', text: 'text-yellow-700', dot: 'bg-yellow-400' },
+  4: { bg: 'bg-orange-50', border: 'border-orange-400', text: 'text-orange-700', dot: 'bg-orange-400' },
+  5: { bg: 'bg-red-50', border: 'border-red-400', text: 'text-red-700', dot: 'bg-red-400' },
 };
 
-// ─── State ──────────────────────────────────────────────────────────────────
-const state = {
-  markers: [],
-  jotformFields: [],
-  currentView: 'dashboard',
-  editingMarker: null,
-  loading: false,
-  editorDraft: null,   // { marker_name, marker_description, mappings: [] }
-  fieldSort: { column: null, direction: 'asc' },
-  fieldFilter: '',
-};
+// =============================================================================
+// STATE
+// =============================================================================
+let markers = [];
+let jotformFields = [];
+let currentMarkerNumber = null;
+let fieldSortKey = 'field_id';
+let fieldSortAsc = true;
 
-// ─── API ────────────────────────────────────────────────────────────────────
+// =============================================================================
+// FIELD TYPE NORMALIZATION
+// =============================================================================
+function stripControlPrefix(type) {
+  if (!type) return '';
+  return type.replace(/^control_/, '');
+}
+
+function getFieldType(rawType) {
+  const stripped = stripControlPrefix(rawType);
+  const map = {
+    checkbox: 'checkbox',
+    radio: 'radio',
+    dropdown: 'dropdown',
+    rating: 'rating',
+    spinner: 'number',
+    textbox: 'text',
+    textarea: 'text',
+  };
+  return map[stripped] || stripped;
+}
+
+// =============================================================================
+// NORMALIZE MARKER DATA (handles both GET and POST key formats)
+// =============================================================================
+function normalizeMarker(m) {
+  return {
+    number: m.number ?? m.marker_number,
+    name: m.name ?? m.marker_name ?? '',
+    description: m.description ?? m.marker_description ?? '',
+    mappings: Array.isArray(m.mappings) ? m.mappings : [],
+  };
+}
+
+// =============================================================================
+// API CALLS
+// =============================================================================
 async function fetchMarkers() {
   try {
     const res = await fetch(ENDPOINTS.getMarkers);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    state.markers = data.markers || data || [];
-  } catch (err) {
-    showToast('Failed to load markers: ' + err.message, 'error');
-    throw err;
+    const raw = data.markers || data || [];
+    markers = (Array.isArray(raw) ? raw : []).map(normalizeMarker);
+  } catch (e) {
+    console.error('Failed to fetch markers:', e);
+    toast('Failed to load markers', 'error');
+    markers = [];
   }
 }
 
-async function fetchJotformFields() {
+async function fetchFields() {
   try {
     const res = await fetch(ENDPOINTS.getFields);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    state.jotformFields = data.fields || data || [];
-  } catch (err) {
-    showToast('Failed to load JotForm fields: ' + err.message, 'error');
-    throw err;
+    jotformFields = Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error('Failed to fetch fields:', e);
+    toast('Failed to load fields', 'error');
+    jotformFields = [];
   }
 }
 
-async function saveMarker(markerNumber, markerName, markerDescription, mappings) {
+async function saveMarker() {
+  const m = markers.find(mk => mk.number === currentMarkerNumber);
+  if (!m) return toast('No marker selected', 'error');
+
+  m.name = document.getElementById('editor-name').value.trim();
+  m.description = document.getElementById('editor-description').value.trim();
+
+  // Collect mappings from DOM
+  const rows = document.querySelectorAll('#mappings-container .mapping-row');
+  const mappings = [];
+  rows.forEach(row => {
+    const fieldSelect = row.querySelector('.field-select');
+    const fieldId = fieldSelect ? fieldSelect.value : '';
+    if (!fieldId) return;
+
+    const field = jotformFields.find(f => String(f.field_id) === String(fieldId));
+    if (!field) return;
+
+    const normalizedType = getFieldType(field.type);
+    const value = collectMappingValue(row, field);
+    if (value === null || value === '' || (Array.isArray(value) && value.length === 0)) return;
+
+    const values = Array.isArray(value) ? value : [value];
+    values.forEach(v => {
+      mappings.push({
+        field_id: String(field.field_id),
+        field_name: field.field_name,
+        field_label: field.label,
+        field_type: normalizedType,
+        field_value: String(v),
+      });
+    });
+  });
+
+  m.mappings = mappings;
+
+  // POST uses marker_ prefixed keys
+  const payload = {
+    marker_number: m.number,
+    marker_name: m.name,
+    marker_description: m.description,
+    mappings: m.mappings,
+  };
+
   try {
     const res = await fetch(ENDPOINTS.updateMarker, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        marker_number: markerNumber,
-        marker_name: markerName,
-        marker_description: markerDescription,
-        mappings: mappings,
-      }),
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    showToast('Cannot connect to API (' + ENDPOINTS.updateMarker + '): ' + err.message, 'error');
-    throw err;
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    toast('Marker ' + m.number + ' saved!', 'success');
+    renderDashboard();
+  } catch (e) {
+    console.error('Save failed:', e);
+    toast('Failed to save marker', 'error');
   }
 }
 
-// ─── Navigation ─────────────────────────────────────────────────────────────
-async function navigate(view, param) {
-  if (view === 'editor') {
-    await openEditor(param);
-  } else if (view === 'fields') {
-    state.currentView = 'fields';
-    state.editingMarker = null;
-    state.editorDraft = null;
-    if (!state.jotformFields.length) {
-      state.loading = true;
-      render();
-      try { await fetchJotformFields(); } catch (_) {}
-      state.loading = false;
-    }
-    render();
-  } else {
-    state.currentView = 'dashboard';
-    state.editingMarker = null;
-    state.editorDraft = null;
-    if (!state.markers.length) {
-      state.loading = true;
-      render();
-      try { await fetchMarkers(); } catch (_) {}
-      state.loading = false;
-    }
-    render();
+function collectMappingValue(row, field) {
+  const normalizedType = getFieldType(field.type);
+  const valueArea = row.querySelector('.value-area');
+  if (!valueArea) return '';
+
+  if (normalizedType === 'checkbox') {
+    const checked = valueArea.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checked).map(cb => cb.value);
   }
+  if (normalizedType === 'radio' || normalizedType === 'dropdown') {
+    const sel = valueArea.querySelector('select');
+    return sel ? sel.value : '';
+  }
+  if (normalizedType === 'rating' || normalizedType === 'number') {
+    const inp = valueArea.querySelector('input[type="number"]');
+    return inp ? inp.value : '';
+  }
+  // text fallback
+  const inp = valueArea.querySelector('input[type="text"], textarea');
+  return inp ? inp.value : '';
 }
 
-async function openEditor(markerNumber) {
-  state.loading = true;
-  state.currentView = 'editor';
-  state.editingMarker = markerNumber;
-  render();
-  try {
-    await Promise.all([
-      state.markers.length ? Promise.resolve() : fetchMarkers(),
-      state.jotformFields.length ? Promise.resolve() : fetchJotformFields(),
-    ]);
-  } catch (_) {}
-  // Build editor draft from marker data
-  const marker = state.markers.find(m => Number(m.marker_number) === Number(markerNumber));
-  if (marker) {
-    const rawMappings = marker.mappings || [];
-    // Group checkbox mappings by field_id
-    const grouped = {};
-    const ordered = [];
-    rawMappings.forEach(m => {
-      if (m.field_type === 'checkbox') {
-        if (!grouped[m.field_id]) {
-          grouped[m.field_id] = {
-            field_id: m.field_id,
-            field_name: m.field_name,
-            field_label: m.field_label,
-            field_type: 'checkbox',
-            values: [],
-          };
-          ordered.push(grouped[m.field_id]);
-        }
-        grouped[m.field_id].values.push(m.field_value);
-      } else {
-        ordered.push({
-          field_id: m.field_id,
-          field_name: m.field_name,
-          field_label: m.field_label,
-          field_type: m.field_type,
-          value: m.field_value,
-        });
-      }
-    });
-    state.editorDraft = {
-      marker_name: marker.marker_name || '',
-      marker_description: marker.marker_description || '',
-      mappings: ordered,
-    };
-  } else {
-    state.editorDraft = { marker_name: '', marker_description: '', mappings: [] };
-  }
-  state.loading = false;
-  render();
-}
-
-// ─── Toast ──────────────────────────────────────────────────────────────────
-function showToast(message, type = 'success') {
+// =============================================================================
+// TOAST NOTIFICATIONS
+// =============================================================================
+function toast(msg, type) {
+  type = type || 'info';
   const container = document.getElementById('toast-container');
-  const colors = type === 'error'
-    ? 'bg-red-600 text-white'
-    : type === 'warning' ? 'bg-yellow-500 text-white' : 'bg-emerald-600 text-white';
-  const icon = type === 'error' ? '&#10007;' : type === 'warning' ? '&#9888;' : '&#10003;';
+  const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600' };
   const el = document.createElement('div');
-  el.className = `toast-enter ${colors} px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm max-w-sm`;
-  el.innerHTML = `<span class="text-lg">${icon}</span><span>${escapeHtml(message)}</span>`;
+  el.className = 'toast ' + (colors[type] || colors.info) + ' text-white px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium';
+  el.textContent = msg;
   container.appendChild(el);
-  setTimeout(() => {
-    el.classList.remove('toast-enter');
-    el.classList.add('toast-exit');
-    setTimeout(() => el.remove(), 300);
-  }, 3000);
+  setTimeout(function() { el.remove(); }, 3000);
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function escapeHtml(str) {
-  const d = document.createElement('div');
+// =============================================================================
+// VIEW MANAGEMENT
+// =============================================================================
+function showView(view, markerNum) {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('view-dashboard').classList.add('hidden');
+  document.getElementById('view-marker').classList.add('hidden');
+  document.getElementById('view-fields').classList.add('hidden');
+
+  // Update sidebar active state
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('bg-slate-700'); });
+
+  if (view === 'dashboard') {
+    document.getElementById('view-dashboard').classList.remove('hidden');
+    var dashBtn = document.querySelector('[data-nav="dashboard"]');
+    if (dashBtn) dashBtn.classList.add('bg-slate-700');
+    renderDashboard();
+  } else if (view === 'marker') {
+    document.getElementById('view-marker').classList.remove('hidden');
+    var mBtn = document.querySelector('[data-nav="marker-' + markerNum + '"]');
+    if (mBtn) mBtn.classList.add('bg-slate-700');
+    openMarkerEditor(markerNum);
+  } else if (view === 'fields') {
+    document.getElementById('view-fields').classList.remove('hidden');
+    var fBtn = document.querySelector('[data-nav="fields"]');
+    if (fBtn) fBtn.classList.add('bg-slate-700');
+    renderFieldTable();
+  }
+}
+
+// =============================================================================
+// DASHBOARD
+// =============================================================================
+function renderDashboard() {
+  var container = document.getElementById('dashboard-cards');
+  container.innerHTML = '';
+
+  for (var i = 1; i <= 5; i++) {
+    var m = markers.find(function(mk) { return mk.number === i; });
+    var c = MARKER_COLORS[i];
+    var name = m ? m.name : 'Marker ' + i;
+    var desc = m ? m.description : 'Not configured';
+    var count = m ? m.mappings.length : 0;
+
+    var card = document.createElement('div');
+    card.className = c.bg + ' border-l-4 ' + c.border + ' rounded-xl p-5 cursor-pointer hover:shadow-md transition';
+    card.setAttribute('data-marker', i);
+    card.onclick = (function(num) { return function() { showView('marker', num); }; })(i);
+    card.innerHTML =
+      '<div class="flex items-center gap-2 mb-2">' +
+        '<span class="w-3 h-3 rounded-full ' + c.dot + '"></span>' +
+        '<span class="font-semibold ' + c.text + '">Marker ' + i + '</span>' +
+      '</div>' +
+      '<h3 class="text-lg font-bold mb-1">' + esc(name) + '</h3>' +
+      '<p class="text-sm text-gray-600 mb-3">' + esc(desc) + '</p>' +
+      '<div class="text-xs text-gray-500">' + count + ' field mapping' + (count !== 1 ? 's' : '') + '</div>';
+    container.appendChild(card);
+  }
+}
+
+// =============================================================================
+// MARKER EDITOR
+// =============================================================================
+function openMarkerEditor(num) {
+  currentMarkerNumber = num;
+  var m = markers.find(function(mk) { return mk.number === num; });
+
+  document.getElementById('editor-title').textContent = 'Marker ' + num + ' Editor';
+  document.getElementById('editor-number').value = num;
+  document.getElementById('editor-name').value = m ? m.name : '';
+  document.getElementById('editor-description').value = m ? m.description : '';
+
+  renderMappings(m ? m.mappings : []);
+}
+
+function renderMappings(mappings) {
+  var container = document.getElementById('mappings-container');
+  container.innerHTML = '';
+
+  // Group mappings by field_id so multiple checkbox values for the same field collapse into one row
+  var grouped = {};
+  mappings.forEach(function(mp) {
+    var key = String(mp.field_id);
+    if (!grouped[key]) {
+      grouped[key] = { field_id: mp.field_id, field_name: mp.field_name, field_label: mp.field_label, field_type: mp.field_type, values: [mp.field_value] };
+    } else {
+      grouped[key].values.push(mp.field_value);
+    }
+  });
+
+  var keys = Object.keys(grouped);
+  if (keys.length === 0) {
+    container.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">No mappings yet. Click "+ Add Mapping" to start.</p>';
+    return;
+  }
+
+  keys.forEach(function(k) {
+    addMappingRow(grouped[k]);
+  });
+}
+
+function addMappingRow(existingMapping) {
+  var container = document.getElementById('mappings-container');
+  // Remove the empty placeholder if present
+  var placeholder = container.querySelector('p');
+  if (placeholder) placeholder.remove();
+
+  var row = document.createElement('div');
+  row.className = 'mapping-row bg-white rounded-xl shadow-sm p-4 flex flex-col gap-3';
+
+  var topRow = document.createElement('div');
+  topRow.className = 'flex items-center gap-3';
+
+  // Field selector
+  var fieldSelect = document.createElement('select');
+  fieldSelect.className = 'field-select flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none';
+  fieldSelect.innerHTML = '<option value="">-- Select JotForm Field --</option>';
+
+  jotformFields.forEach(function(f) {
+    var opt = document.createElement('option');
+    opt.value = f.field_id;
+    opt.textContent = f.label + ' (' + getFieldType(f.type) + ')';
+    // Match by field_id, comparing as strings
+    if (existingMapping && String(existingMapping.field_id) === String(f.field_id)) {
+      opt.selected = true;
+    }
+    fieldSelect.appendChild(opt);
+  });
+
+  // Value area
+  var valueArea = document.createElement('div');
+  valueArea.className = 'value-area flex-1';
+
+  // Remove button
+  var removeBtn = document.createElement('button');
+  removeBtn.className = 'text-red-500 hover:text-red-700 text-lg font-bold px-2 transition';
+  removeBtn.innerHTML = '&times;';
+  removeBtn.onclick = function() { row.remove(); };
+
+  topRow.appendChild(fieldSelect);
+  topRow.appendChild(removeBtn);
+  row.appendChild(topRow);
+  row.appendChild(valueArea);
+  container.appendChild(row);
+
+  fieldSelect.addEventListener('change', function() {
+    renderValueInput(valueArea, fieldSelect.value, null);
+  });
+
+  // If existing mapping, render value input with pre-selected values
+  if (existingMapping && existingMapping.field_id) {
+    var values = existingMapping.values || [existingMapping.field_value];
+    renderValueInput(valueArea, existingMapping.field_id, values);
+  }
+}
+
+function renderValueInput(valueArea, fieldId, existingValues) {
+  valueArea.innerHTML = '';
+  if (!fieldId) return;
+
+  var field = jotformFields.find(function(f) { return String(f.field_id) === String(fieldId); });
+  if (!field) return;
+
+  var normalizedType = getFieldType(field.type);
+  var options = field.options || [];
+  var existing = existingValues || [];
+
+  if (normalizedType === 'checkbox' && options.length > 0) {
+    // Show EXACT JotForm options as individual checkboxes
+    var grid = document.createElement('div');
+    grid.className = 'grid grid-cols-2 md:grid-cols-3 gap-2 mt-1';
+    options.forEach(function(optText) {
+      var label = document.createElement('label');
+      label.className = 'flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded hover:bg-gray-50';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = optText;
+      cb.className = 'rounded border-gray-300';
+      if (existing.indexOf(optText) !== -1) cb.checked = true;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(optText));
+      grid.appendChild(label);
+    });
+    valueArea.appendChild(grid);
+
+  } else if ((normalizedType === 'radio' || normalizedType === 'dropdown') && options.length > 0) {
+    // Show EXACT JotForm options as a select dropdown
+    var sel = document.createElement('select');
+    sel.className = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mt-1';
+    sel.innerHTML = '<option value="">-- Select Value --</option>';
+    options.forEach(function(optText) {
+      var o = document.createElement('option');
+      o.value = optText;
+      o.textContent = optText;
+      if (existing.indexOf(optText) !== -1) o.selected = true;
+      sel.appendChild(o);
+    });
+    valueArea.appendChild(sel);
+
+  } else if (normalizedType === 'rating') {
+    var inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = '1';
+    inp.max = '5';
+    inp.step = '1';
+    inp.value = existing[0] || '';
+    inp.placeholder = '1-5';
+    inp.className = 'w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mt-1';
+    valueArea.appendChild(inp);
+
+  } else if (normalizedType === 'number') {
+    var inp2 = document.createElement('input');
+    inp2.type = 'number';
+    inp2.value = existing[0] || '';
+    inp2.placeholder = 'Enter number';
+    inp2.className = 'w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mt-1';
+    valueArea.appendChild(inp2);
+
+  } else {
+    // text / textarea / unknown - free text input
+    var inp3 = document.createElement('input');
+    inp3.type = 'text';
+    inp3.value = existing[0] || '';
+    inp3.placeholder = 'Enter value';
+    inp3.className = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none mt-1';
+    valueArea.appendChild(inp3);
+  }
+}
+
+// =============================================================================
+// FIELD REFERENCE TABLE
+// =============================================================================
+function sortFields(key) {
+  if (fieldSortKey === key) {
+    fieldSortAsc = !fieldSortAsc;
+  } else {
+    fieldSortKey = key;
+    fieldSortAsc = true;
+  }
+  renderFieldTable();
+}
+
+function renderFieldTable() {
+  var search = (document.getElementById('field-search').value || '').toLowerCase();
+  var tbody = document.getElementById('field-table-body');
+  tbody.innerHTML = '';
+
+  var filtered = jotformFields.filter(function(f) {
+    if (!search) return true;
+    return (
+      String(f.field_id).includes(search) ||
+      (f.field_name || '').toLowerCase().includes(search) ||
+      (f.label || '').toLowerCase().includes(search) ||
+      (f.type || '').toLowerCase().includes(search)
+    );
+  });
+
+  filtered.sort(function(a, b) {
+    var va = a[fieldSortKey] || '';
+    var vb = b[fieldSortKey] || '';
+    if (fieldSortKey === 'field_id') {
+      va = Number(va);
+      vb = Number(vb);
+    } else {
+      va = String(va).toLowerCase();
+      vb = String(vb).toLowerCase();
+    }
+    if (va < vb) return fieldSortAsc ? -1 : 1;
+    if (va > vb) return fieldSortAsc ? 1 : -1;
+    return 0;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No fields found</td></tr>';
+    return;
+  }
+
+  filtered.forEach(function(f) {
+    var tr = document.createElement('tr');
+    tr.className = 'border-t border-gray-100 hover:bg-gray-50';
+    var opts = (f.options || []).join(', ');
+    tr.innerHTML =
+      '<td class="px-4 py-2.5 font-mono text-xs">' + esc(String(f.field_id)) + '</td>' +
+      '<td class="px-4 py-2.5 text-sm">' + esc(f.field_name || '') + '</td>' +
+      '<td class="px-4 py-2.5 text-sm font-medium">' + esc(f.label || '') + '</td>' +
+      '<td class="px-4 py-2.5"><span class="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">' + esc(getFieldType(f.type)) + '</span></td>' +
+      '<td class="px-4 py-2.5 text-xs text-gray-500 max-w-xs truncate">' + (opts ? esc(opts) : '<span class="text-gray-300">-</span>') + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+function esc(str) {
+  var d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
 }
 
-function getFieldById(fieldId) {
-  return state.jotformFields.find(f => String(f.field_id || f.id || f.qid) === String(fieldId));
-}
-
-function getFieldOptions(field) {
-  if (!field) return [];
-  if (Array.isArray(field.options)) return field.options;
-  if (typeof field.options === 'string') {
-    try { return JSON.parse(field.options); } catch (_) {
-      return field.options.split('|').map(o => o.trim()).filter(Boolean);
-    }
-  }
-  return [];
-}
-
-function getFieldId(field) {
-  return field.field_id || field.id || field.qid || '';
-}
-
-function getFieldLabel(field) {
-  return field.field_label || field.label || field.text || field.name || '';
-}
-
-function getFieldType(field) {
-  return (field.field_type || field.type || '').toLowerCase();
-}
-
-function getFieldName(field) {
-  return field.field_name || field.name || '';
-}
-
-// ─── Render ─────────────────────────────────────────────────────────────────
-function render() {
-  renderSidebar();
-  const app = document.getElementById('app');
-  if (state.loading) {
-    app.innerHTML = renderLoading();
-    return;
-  }
-  switch (state.currentView) {
-    case 'editor': app.innerHTML = renderEditor(); bindEditorEvents(); break;
-    case 'fields': app.innerHTML = renderFields(); bindFieldsEvents(); break;
-    default: app.innerHTML = renderDashboard(); bindDashboardEvents(); break;
-  }
-}
-
-function renderLoading() {
-  return `
-    <div class="flex items-center justify-center h-96">
-      <div class="flex flex-col items-center gap-4">
-        <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span class="text-gray-500 text-sm">Loading...</span>
-      </div>
-    </div>`;
-}
-
-function renderSidebar() {
-  const nav = document.getElementById('sidebar-nav');
-  const items = [
-    { id: 'dashboard', label: 'Dashboard', icon: gridIcon() },
-    ...([1,2,3,4,5].map(n => ({ id: 'marker-' + n, label: 'Marker ' + n, icon: markerIcon(n) }))),
-    { id: 'fields', label: 'Field Reference', icon: listIcon() },
-  ];
-  const activeId = state.currentView === 'editor' ? 'marker-' + state.editingMarker
-    : state.currentView === 'fields' ? 'fields' : 'dashboard';
-  nav.innerHTML = items.map(item => {
-    const active = item.id === activeId;
-    return `<button data-nav="${item.id}" class="w-full flex items-center gap-3 px-5 py-2.5 text-sm transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}">
-      ${item.icon}<span>${item.label}</span></button>`;
-  }).join('');
-  nav.querySelectorAll('[data-nav]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.nav;
-      if (id === 'dashboard') navigate('dashboard');
-      else if (id === 'fields') navigate('fields');
-      else if (id.startsWith('marker-')) navigate('editor', parseInt(id.split('-')[1]));
-    });
-  });
-}
-
-// SVG icon helpers
-function gridIcon() {
-  return `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
-}
-function markerIcon(n) {
-  const colors = { 1: '#10b981', 2: '#3b82f6', 3: '#eab308', 4: '#f97316', 5: '#ef4444' };
-  return `<span class="w-4 h-4 rounded-full inline-block" style="background:${colors[n]}"></span>`;
-}
-function listIcon() {
-  return `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
-}
-
-// ─── Dashboard ──────────────────────────────────────────────────────────────
-function renderDashboard() {
-  const cards = [1,2,3,4,5].map(n => {
-    const marker = state.markers.find(m => Number(m.marker_number) === n);
-    const name = marker ? (marker.marker_name || 'Unnamed') : 'Not configured';
-    const desc = marker ? (marker.marker_description || 'No description') : '--';
-    const count = marker && marker.mappings ? marker.mappings.length : 0;
-    const c = MARKER_COLORS[n];
-    return `
-      <button data-marker="${n}" class="card-hover bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-left flex flex-col gap-4 focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <div class="flex items-center gap-4">
-          <div class="${c.bg} text-white w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow">${n}</div>
-          <div>
-            <div class="font-semibold text-gray-900 text-lg">${escapeHtml(name)}</div>
-            <div class="text-xs text-gray-400 mt-0.5">${count} field mapping${count !== 1 ? 's' : ''}</div>
-          </div>
-        </div>
-        <p class="text-sm text-gray-500 line-clamp-2">${escapeHtml(desc)}</p>
-        <div class="mt-auto flex items-center text-xs ${c.text} font-medium gap-1">
-          <span>Edit marker</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-        </div>
-      </button>`;
-  }).join('');
-  return `
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
-      <p class="text-gray-500 text-sm mt-1">Manage your 5 photo report markers and their JotForm field mappings.</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">${cards}</div>`;
-}
-
-function bindDashboardEvents() {
-  document.querySelectorAll('[data-marker]').forEach(btn => {
-    btn.addEventListener('click', () => navigate('editor', parseInt(btn.dataset.marker)));
-  });
-}
-
-// ─── Editor ─────────────────────────────────────────────────────────────────
-function renderEditor() {
-  const n = state.editingMarker;
-  const draft = state.editorDraft;
-  if (!draft) return renderLoading();
-  const c = MARKER_COLORS[n];
-
-  const fieldOptions = state.jotformFields.map(f => {
-    const fid = getFieldId(f);
-    const label = getFieldLabel(f);
-    const type = getFieldType(f);
-    return `<option value="${escapeHtml(String(fid))}">${escapeHtml(label)} (${escapeHtml(type)})</option>`;
-  }).join('');
-
-  const rows = draft.mappings.map((m, idx) => renderMappingRow(m, idx, fieldOptions)).join('');
-
-  return `
-    <div class="mb-6 flex items-center gap-4">
-      <button id="btn-back" class="text-gray-400 hover:text-gray-600 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-      </button>
-      <div class="${c.bg} text-white w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold">${n}</div>
-      <div>
-        <h2 class="text-2xl font-bold text-gray-900">Edit Marker ${n}: ${escapeHtml(draft.marker_name || 'Unnamed')}</h2>
-        <p class="text-sm text-gray-500">Configure name, description, and field mappings</p>
-      </div>
-    </div>
-
-    <!-- Name & Description -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Marker Name</label>
-          <input id="editor-name" type="text" value="${escapeHtml(draft.marker_name)}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="e.g. Exterior Front">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Marker Description</label>
-          <textarea id="editor-desc" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none" placeholder="Describe what this marker captures...">${escapeHtml(draft.marker_description)}</textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Field Mappings -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Field Mappings</h3>
-        <button id="btn-add-field" class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-          Add Field
-        </button>
-      </div>
-      <div id="mappings-container" class="flex flex-col gap-4">
-        ${rows || '<p class="text-gray-400 text-sm py-4 text-center">No field mappings yet. Click "Add Field" to begin.</p>'}
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex items-center gap-3">
-      <button id="btn-save" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-        Save Marker
-      </button>
-      <button id="btn-cancel" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium border border-gray-300 transition-colors">
-        Cancel
-      </button>
-    </div>`;
-}
-
-function renderMappingRow(mapping, idx, fieldOptions) {
-  const selectedId = mapping.field_id ? String(mapping.field_id) : '';
-  const field = selectedId ? getFieldById(selectedId) : null;
-  const type = mapping.field_type || (field ? getFieldType(field) : '');
-
-  let valueHtml = '';
-  if (selectedId && field) {
-    const options = getFieldOptions(field);
-    if (type === 'checkbox') {
-      const checked = Array.isArray(mapping.values) ? mapping.values : (mapping.value ? [mapping.value] : []);
-      if (options.length) {
-        valueHtml = `<div class="flex flex-wrap gap-3">${options.map(opt => {
-          const optVal = typeof opt === 'object' ? (opt.value || opt.label || opt) : opt;
-          const isChecked = checked.includes(String(optVal));
-          return `<label class="inline-flex items-center gap-1.5 text-sm"><input type="checkbox" data-mapping-idx="${idx}" data-cb-value="${escapeHtml(String(optVal))}" ${isChecked ? 'checked' : ''} class="mapping-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-400"><span>${escapeHtml(String(optVal))}</span></label>`;
-        }).join('')}</div>`;
-      } else {
-        valueHtml = `<input type="text" data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Comma-separated values" value="${escapeHtml(checked.join(', '))}">`;
-      }
-    } else if (type === 'radio' || type === 'dropdown' || type === 'select') {
-      const val = mapping.value || '';
-      if (options.length) {
-        valueHtml = `<select data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-          <option value="">-- Select value --</option>
-          ${options.map(opt => {
-            const optVal = typeof opt === 'object' ? (opt.value || opt.label || opt) : opt;
-            return `<option value="${escapeHtml(String(optVal))}" ${String(optVal) === String(val) ? 'selected' : ''}>${escapeHtml(String(optVal))}</option>`;
-          }).join('')}
-        </select>`;
-      } else {
-        valueHtml = `<input type="text" data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Value" value="${escapeHtml(val)}">`;
-      }
-    } else if (type === 'rating') {
-      const val = mapping.value || '';
-      valueHtml = `<input type="number" data-mapping-idx="${idx}" class="mapping-value w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm" min="1" max="5" placeholder="1-5" value="${escapeHtml(val)}">`;
-    } else if (type === 'number') {
-      const val = mapping.value || '';
-      valueHtml = `<input type="number" data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Number" value="${escapeHtml(val)}">`;
-    } else {
-      const val = mapping.value || '';
-      valueHtml = `<input type="text" data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Value" value="${escapeHtml(val)}">`;
-    }
-  } else if (selectedId && !field) {
-    const val = mapping.value || (Array.isArray(mapping.values) ? mapping.values.join(', ') : '');
-    valueHtml = `<input type="text" data-mapping-idx="${idx}" class="mapping-value w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Value" value="${escapeHtml(val)}">`;
-  }
-
-  return `
-    <div class="field-row border border-gray-200 rounded-lg p-4 bg-gray-50" data-row-idx="${idx}">
-      <div class="flex items-start gap-4">
-        <div class="flex-1">
-          <label class="block text-xs font-medium text-gray-500 mb-1">JotForm Field</label>
-          <select data-mapping-idx="${idx}" class="mapping-field-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-            <option value="">-- Select a field --</option>
-            ${fieldOptions.replace(new RegExp(`value="${escapeHtml(selectedId)}"`, 'g'), `value="${escapeHtml(selectedId)}" selected`)}
-          </select>
-        </div>
-        <div class="flex-1">
-          <label class="block text-xs font-medium text-gray-500 mb-1">Value</label>
-          <div class="mapping-value-container" data-value-idx="${idx}">
-            ${valueHtml || '<span class="text-gray-400 text-sm py-2 block">Select a field first</span>'}
-          </div>
-        </div>
-        <button data-remove-idx="${idx}" class="mt-6 text-red-400 hover:text-red-600 transition-colors p-1" title="Remove mapping">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-    </div>`;
-}
-
-function bindEditorEvents() {
-  document.getElementById('btn-back')?.addEventListener('click', () => navigate('dashboard'));
-  document.getElementById('btn-cancel')?.addEventListener('click', () => navigate('dashboard'));
-  document.getElementById('btn-add-field')?.addEventListener('click', addMappingRow);
-  document.getElementById('btn-save')?.addEventListener('click', handleSave);
-
-  // Bind field selector changes
-  document.querySelectorAll('.mapping-field-select').forEach(sel => {
-    sel.addEventListener('change', (e) => handleFieldChange(e));
-  });
-
-  // Bind remove buttons
-  document.querySelectorAll('[data-remove-idx]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.removeIdx);
-      state.editorDraft.mappings.splice(idx, 1);
-      render();
-    });
-  });
-
-  // Bind checkbox changes
-  document.querySelectorAll('.mapping-checkbox').forEach(cb => {
-    cb.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.mappingIdx);
-      const val = e.target.dataset.cbValue;
-      const m = state.editorDraft.mappings[idx];
-      if (!Array.isArray(m.values)) m.values = [];
-      if (e.target.checked) {
-        if (!m.values.includes(val)) m.values.push(val);
-      } else {
-        m.values = m.values.filter(v => v !== val);
-      }
-    });
-  });
-
-  // Bind value inputs (non-checkbox)
-  document.querySelectorAll('.mapping-value').forEach(input => {
-    input.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.mappingIdx);
-      state.editorDraft.mappings[idx].value = e.target.value;
-    });
-    input.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.dataset.mappingIdx);
-      state.editorDraft.mappings[idx].value = e.target.value;
-    });
-  });
-}
-
-function handleFieldChange(e) {
-  const idx = parseInt(e.target.dataset.mappingIdx);
-  const fieldId = e.target.value;
-  const field = fieldId ? getFieldById(fieldId) : null;
-  const m = state.editorDraft.mappings[idx];
-
-  if (field) {
-    m.field_id = getFieldId(field);
-    m.field_name = getFieldName(field);
-    m.field_label = getFieldLabel(field);
-    m.field_type = getFieldType(field);
-    m.value = '';
-    m.values = [];
-  } else {
-    m.field_id = '';
-    m.field_name = '';
-    m.field_label = '';
-    m.field_type = '';
-    m.value = '';
-    m.values = [];
-  }
-
-  // Sync name/desc from inputs before re-render
-  syncEditorInputs();
-  render();
-}
-
-function syncEditorInputs() {
-  const nameEl = document.getElementById('editor-name');
-  const descEl = document.getElementById('editor-desc');
-  if (nameEl) state.editorDraft.marker_name = nameEl.value;
-  if (descEl) state.editorDraft.marker_description = descEl.value;
-}
-
-function addMappingRow() {
-  syncEditorInputs();
-  state.editorDraft.mappings.push({
-    field_id: '', field_name: '', field_label: '', field_type: '', value: '', values: [],
-  });
-  render();
-}
-
-async function handleSave() {
-  syncEditorInputs();
-  const draft = state.editorDraft;
-  const markerNumber = state.editingMarker;
-
-  // Convert UI mappings to flat array
-  const mappings = [];
-  draft.mappings.forEach(m => {
-    if (!m.field_id) return; // skip empty rows
-    if (m.field_type === 'checkbox' && Array.isArray(m.values) && m.values.length) {
-      m.values.forEach(v => {
-        mappings.push({
-          field_id: m.field_id,
-          field_name: m.field_name,
-          field_label: m.field_label,
-          field_type: 'checkbox',
-          field_value: v,
-        });
-      });
-    } else {
-      mappings.push({
-        field_id: m.field_id,
-        field_name: m.field_name,
-        field_label: m.field_label,
-        field_type: m.field_type,
-        field_value: m.value || '',
-      });
-    }
-  });
-
-  const saveBtn = document.getElementById('btn-save');
-  if (saveBtn) {
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg> Saving...`;
-  }
-
-  try {
-    await saveMarker(markerNumber, draft.marker_name, draft.marker_description, mappings);
-    showToast('Marker ' + markerNumber + ' saved successfully!', 'success');
-    // Refresh markers cache
-    state.markers = [];
-    await fetchMarkers();
-    navigate('dashboard');
-  } catch (err) {
-    // toast already shown by saveMarker
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Save Marker`;
-    }
-  }
-}
-
-// ─── Field Reference ────────────────────────────────────────────────────────
-function renderFields() {
-  let fields = [...state.jotformFields];
-  const filter = state.fieldFilter.toLowerCase();
-  if (filter) {
-    fields = fields.filter(f => {
-      return (getFieldId(f) + ' ' + getFieldLabel(f) + ' ' + getFieldName(f) + ' ' + getFieldType(f)).toLowerCase().includes(filter);
-    });
-  }
-  const { column, direction } = state.fieldSort;
-  if (column) {
-    fields.sort((a, b) => {
-      let va, vb;
-      switch (column) {
-        case 'id': va = String(getFieldId(a)); vb = String(getFieldId(b)); break;
-        case 'name': va = getFieldName(a); vb = getFieldName(b); break;
-        case 'label': va = getFieldLabel(a); vb = getFieldLabel(b); break;
-        case 'type': va = getFieldType(a); vb = getFieldType(b); break;
-        default: va = ''; vb = '';
-      }
-      const cmp = va.localeCompare(vb, undefined, { numeric: true });
-      return direction === 'asc' ? cmp : -cmp;
-    });
-  }
-
-  const sortArrow = (col) => {
-    if (state.fieldSort.column !== col) return '<span class="text-gray-300 ml-1">&varr;</span>';
-    return state.fieldSort.direction === 'asc'
-      ? '<span class="text-blue-500 ml-1">&uarr;</span>'
-      : '<span class="text-blue-500 ml-1">&darr;</span>';
-  };
-
-  const rows = fields.map(f => {
-    const options = getFieldOptions(f);
-    const optStr = options.length
-      ? options.map(o => typeof o === 'object' ? (o.value || o.label || JSON.stringify(o)) : o).join(', ')
-      : '--';
-    return `<tr class="border-b border-gray-100 hover:bg-gray-50">
-      <td class="px-4 py-3 text-sm font-mono text-gray-600">${escapeHtml(String(getFieldId(f)))}</td>
-      <td class="px-4 py-3 text-sm">${escapeHtml(getFieldName(f))}</td>
-      <td class="px-4 py-3 text-sm font-medium">${escapeHtml(getFieldLabel(f))}</td>
-      <td class="px-4 py-3 text-sm"><span class="inline-block bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">${escapeHtml(getFieldType(f))}</span></td>
-      <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate" title="${escapeHtml(optStr)}">${escapeHtml(optStr)}</td>
-    </tr>`;
-  }).join('');
-
-  return `
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">Field Reference</h2>
-      <p class="text-gray-500 text-sm mt-1">All available JotForm fields. Click column headers to sort.</p>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div class="p-4 border-b border-gray-100">
-        <input id="field-filter" type="text" placeholder="Search fields by ID, name, label, or type..." value="${escapeHtml(state.fieldFilter)}" class="w-full md:w-96 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none">
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="sortable px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-sort="id">Field ID ${sortArrow('id')}</th>
-              <th class="sortable px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-sort="name">Name ${sortArrow('name')}</th>
-              <th class="sortable px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-sort="label">Label ${sortArrow('label')}</th>
-              <th class="sortable px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-sort="type">Type ${sortArrow('type')}</th>
-              <th class="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Options</th>
-            </tr>
-          </thead>
-          <tbody>${rows || '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No fields found.</td></tr>'}</tbody>
-        </table>
-      </div>
-      <div class="px-4 py-3 text-xs text-gray-400 border-t border-gray-100">${fields.length} field${fields.length !== 1 ? 's' : ''} shown</div>
-    </div>`;
-}
-
-function bindFieldsEvents() {
-  const filterInput = document.getElementById('field-filter');
-  if (filterInput) {
-    filterInput.addEventListener('input', (e) => {
-      state.fieldFilter = e.target.value;
-      document.querySelector('.overflow-x-auto').parentElement.querySelector('tbody').innerHTML = '';
-      // Debounced re-render of just the table
-      clearTimeout(state._filterTimeout);
-      state._filterTimeout = setTimeout(() => render(), 200);
-    });
-  }
-  document.querySelectorAll('[data-sort]').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.sort;
-      if (state.fieldSort.column === col) {
-        state.fieldSort.direction = state.fieldSort.direction === 'asc' ? 'desc' : 'asc';
-      } else {
-        state.fieldSort.column = col;
-        state.fieldSort.direction = 'asc';
-      }
-      render();
-    });
-  });
-}
-
-// ─── Init ───────────────────────────────────────────────────────────────────
-async function init() {
-  state.loading = true;
-  render();
-  try {
-    await fetchMarkers();
-  } catch (_) {}
-  state.loading = false;
-  render();
-}
-
-init();
+// =============================================================================
+// INIT
+// =============================================================================
+(async function init() {
+  await Promise.all([fetchMarkers(), fetchFields()]);
+  showView('dashboard');
+})();
 </script>
+
 </body>
 </html>
