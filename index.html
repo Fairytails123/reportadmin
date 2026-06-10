@@ -227,6 +227,13 @@ async function saveMarker() {
   const m = markers.find(mk => mk.number === currentMarkerNumber);
   if (!m) return toast('No marker selected', 'error');
 
+  // Guard: if the JotForm field catalog failed to load, every mapping row would
+  // resolve to no field and be silently dropped — refuse to save rather than wipe mappings.
+  const domRows = document.querySelectorAll('#mappings-container .mapping-row');
+  if (jotformFields.length === 0 && domRows.length > 0) {
+    return toast('Field list not loaded — refresh the page before saving (would wipe mappings)', 'error');
+  }
+
   m.name = document.getElementById('editor-name').value.trim();
   m.description = document.getElementById('editor-description').value.trim();
 
