@@ -1,0 +1,7 @@
+# This repo is PUBLIC (GitHub Pages: the admin panel + setup scripts only).
+# Internal operations docs live in the private project master and must not be
+# published here. Do not add these files to this repo.
+HANDOFF.md
+HANDOVER_*.md
+*.secrets
+secrets.env
